@@ -59,9 +59,3 @@ The shrinkage hyperparameter is the spike standard deviation for
 `b_lambda` for `"lasso"`, `"group_lasso"`, `"het_group_lasso"` and
 `"adaptive_lasso"`. `lambda_iq` is the interquantile weight of Eq. (15). All
 functions take a `seed` (default 1), so repeated runs give identical results.
-
-## Simulation study
-
-`simulation/ar_ext12` holds the Section 4 study (11 settings × no shift,
-location and scale; 33 configurations) with its own copy of the package. It is
-not part of the package build; see `simulation/ar_ext12/README.md`.

@@ -1,0 +1,33 @@
+Package: bbq
+Type: Package
+Title: Bayesian Bi-Aspect Quantile Change-Point Detection
+Version: 0.1.3
+Authors@R: c(
+    person(
+      "Yuhui", "Yao",
+      email = "yyao17@ua.edu",
+      role = c("aut", "cre")
+    )
+  )
+Description: Retrospective (Phase I) change-point detection for individual
+    autocorrelated observations without distributional assumptions. Three
+    quantile levels are modeled jointly by Bayesian multiple quantile regression
+    with a score likelihood, non-crossing and interquantile penalties, and
+    sparsity-inducing priors on block shift coefficients, fitted by maximum a
+    posteriori estimation with a Laplace approximation via 'Stan'. Decorrelated
+    union-intersection statistics identify shifted blocks on the quantile basis
+    and on the location (median) and scale (interquartile range) basis.
+License: GPL-3
+Encoding: UTF-8
+Depends: R (>= 3.5.0)
+Imports:
+    MASS,
+    quantreg,
+    rstan (>= 2.21.0),
+    stats,
+    utils
+Suggests:
+    changepoint,
+    ggplot2,
+    patchwork
+RoxygenNote: 7.3.3

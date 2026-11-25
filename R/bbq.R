@@ -140,23 +140,31 @@ bbqFit <- function(y, l, w, prior = c("spike_slab", "spike_slab_lasso", "lasso",
 #' the quantile basis and on the QSS basis (median and IQR shifts, Eqs. 23-24),
 #' unadjusted block decisions at \eqn{FAP_0}, cell signals within OOC blocks at
 #' the block constant, and localization within each OOC block by the score
-#' criterion of Eq. (25). Calls \code{\link{detectChangepoints_gamma}} with
-#' \code{basis = c("quantile", "qss")}, \code{statistic = "ui"},
-#' \code{adjust = "raw"} and \code{signal_position = "score"}.
+#' criterion of Eq. (25) by default. Calls \code{\link{detectChangepoints_gamma}} with
+#' \code{basis = c("quantile", "qss")}, \code{statistic = "ui"} and
+#' \code{adjust = "raw"}.
 #'
 #' @param fit A fit from \code{\link{bbqFit}}.
 #' @param l Block length.
 #' @param w Warm-up period.
 #' @param y The series (defaults to \code{fit$y}).
 #' @param FAP0 Nominal false alarm probability.
+#' @param signal_position How the change-point is placed within each OOC block:
+#'   \code{"score"} (default, Eq. 25), \code{"first"}, \code{"last"},
+#'   \code{"middle"}, \code{"max_deviation"} or \code{"pinball"}; see
+#'   \code{\link{detectChangepoints_gamma}}. It does not change which blocks or
+#'   cells are flagged.
 #' @return The \code{detectChangepoints_gamma} result. The OOC blocks are
 #'   \code{$tests$quantile$ui$raw} and \code{$tests$qss$ui$raw}, the cell
 #'   signals \code{$tests[[basis]]$ui$cells$raw}, and the localized change
 #'   points \code{$detected_blocks$signal_obs}.
 #' @export
-bbqDetect <- function(fit, l, w, y = fit$y, FAP0 = 0.05) {
+bbqDetect <- function(fit, l, w, y = fit$y, FAP0 = 0.05,
+                      signal_position = c("score", "first", "last", "middle",
+                                          "max_deviation", "pinball")) {
+  signal_position <- match.arg(signal_position)
   detectChangepoints_gamma(fit, .bbq_tau_levels, l = l, w = w, y = y,
-                           signal_position = "score", alpha = FAP0,
+                           signal_position = signal_position, alpha = FAP0,
                            basis = c("quantile", "qss"), statistic = "ui",
                            adjust = "raw")
 }
@@ -169,7 +177,7 @@ bbqDetect <- function(fit, l, w, y = fit$y, FAP0 = 0.05) {
 #'
 #' @inheritParams bbqTune
 #' @inheritParams bbqFit
-#' @param FAP0 Nominal false alarm probability.
+#' @inheritParams bbqDetect
 #' @return A list with \code{cv} (the tuning table), \code{fit}, \code{detection},
 #'   and \code{settings} (prior, pattern, l, w, selected \code{lambda_iq} and
 #'   shrinkage, \code{lambda_nc}, \code{FAP0}).
@@ -190,17 +198,21 @@ bbq <- function(y, l, w, prior = c("spike_slab", "spike_slab_lasso", "lasso", "g
                 pattern = c("sustained", "isolated"),
                 lambda_iq = c(0, 1, 10, 100, 1000), shrinkage = NULL,
                 lambda_nc = 50, FAP0 = 0.05, n_draws = 20000, seed = 1,
-                verbose = FALSE) {
+                verbose = FALSE,
+                signal_position = c("score", "first", "last", "middle",
+                                    "max_deviation", "pinball")) {
   prior <- match.arg(prior)
   pattern <- match.arg(pattern)
+  signal_position <- match.arg(signal_position)
   cv <- bbqTune(y, l, w, prior, pattern, lambda_iq, shrinkage, lambda_nc, seed, verbose)
   hp <- attr(cv, "shrinkage_arg")
   best <- cv[1, ]
   fit <- bbqFit(y, l, w, prior, pattern, lambda_iq = best$lambda_iq,
                 shrinkage = best[[hp]], lambda_nc = lambda_nc,
                 n_draws = n_draws, seed = seed)
-  list(cv = cv, fit = fit, detection = bbqDetect(fit, l, w, y, FAP0),
+  list(cv = cv, fit = fit, detection = bbqDetect(fit, l, w, y, FAP0, signal_position),
        settings = list(prior = prior, pattern = pattern, l = l, w = w,
                        lambda_iq = best$lambda_iq, shrinkage = best[[hp]],
-                       shrinkage_arg = hp, lambda_nc = lambda_nc, FAP0 = FAP0))
+                       shrinkage_arg = hp, lambda_nc = lambda_nc, FAP0 = FAP0,
+                       signal_position = signal_position))
 }

@@ -17,7 +17,8 @@ bbq(
   FAP0 = 0.05,
   n_draws = 20000,
   seed = 1,
-  verbose = FALSE
+  verbose = FALSE,
+  signal_position = c("score", "first", "last", "middle", "max_deviation", "pinball")
 )
 }
 \arguments{
@@ -50,6 +51,12 @@ probability above its nominal level.}
 \item{seed}{Random seed.}
 
 \item{verbose}{Print progress.}
+
+\item{signal_position}{How the change-point is placed within each OOC block:
+\code{"score"} (default, Eq. 25), \code{"first"}, \code{"last"},
+\code{"middle"}, \code{"max_deviation"} or \code{"pinball"}; see
+\code{\link{detectChangepoints_gamma}}. It does not change which blocks or
+cells are flagged.}
 }
 \value{
 A list with \code{cv} (the tuning table), \code{fit}, \code{detection},

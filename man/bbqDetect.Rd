@@ -4,7 +4,14 @@
 \alias{bbqDetect}
 \title{BBQ change-point detection}
 \usage{
-bbqDetect(fit, l, w, y = fit$y, FAP0 = 0.05)
+bbqDetect(
+  fit,
+  l,
+  w,
+  y = fit$y,
+  FAP0 = 0.05,
+  signal_position = c("score", "first", "last", "middle", "max_deviation", "pinball")
+)
 }
 \arguments{
 \item{fit}{A fit from \code{\link{bbqFit}}.}
@@ -16,6 +23,12 @@ bbqDetect(fit, l, w, y = fit$y, FAP0 = 0.05)
 \item{y}{The series (defaults to \code{fit$y}).}
 
 \item{FAP0}{Nominal false alarm probability.}
+
+\item{signal_position}{How the change-point is placed within each OOC block:
+\code{"score"} (default, Eq. 25), \code{"first"}, \code{"last"},
+\code{"middle"}, \code{"max_deviation"} or \code{"pinball"}; see
+\code{\link{detectChangepoints_gamma}}. It does not change which blocks or
+cells are flagged.}
 }
 \value{
 The \code{detectChangepoints_gamma} result. The OOC blocks are
@@ -29,7 +42,7 @@ statistic with its posterior probability and charting constant (Eq. 21) on
 the quantile basis and on the QSS basis (median and IQR shifts, Eqs. 23-24),
 unadjusted block decisions at \eqn{FAP_0}, cell signals within OOC blocks at
 the block constant, and localization within each OOC block by the score
-criterion of Eq. (25). Calls \code{\link{detectChangepoints_gamma}} with
-\code{basis = c("quantile", "qss")}, \code{statistic = "ui"},
-\code{adjust = "raw"} and \code{signal_position = "score"}.
+criterion of Eq. (25) by default. Calls \code{\link{detectChangepoints_gamma}} with
+\code{basis = c("quantile", "qss")}, \code{statistic = "ui"} and
+\code{adjust = "raw"}.
 }

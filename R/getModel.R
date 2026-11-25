@@ -212,7 +212,7 @@
   if (logf) y_eff <- log(y_eff)
 
   # ---- eta (n x m) ----
-  ETA <- X_design %*% t(beta) + as.numeric(sd$offset)
+  ETA <- X_design %*% t(beta) + as.numeric(sd$eta_offset)
   if (r > 0) ETA <- ETA + H %*% t(gamma)
 
   # ---- l*: score likelihood ----
@@ -828,7 +828,7 @@ getModel <- function(y, taus, H = NULL, X = NULL, offset = NULL, w = 0,
       matrix[n, px] X;                 // n x px
       matrix[n, r] H;                  // n x r
       vector[n] y;
-      vector[n] offset;
+      vector[n] eta_offset;            // 'offset' is reserved in Stan >= 2.33
       vector[m] tau_q;
       vector[m] beta0_loc;
       vector<lower=0>[m] beta0_scale;
@@ -1097,7 +1097,7 @@ getModel <- function(y, taus, H = NULL, X = NULL, offset = NULL, w = 0,
               real xb = dot_product(to_vector(row(X_design, i)), to_vector(beta[q]));
               real hb = (r > 0) ? dot_product(to_vector(row(H, i)), to_vector(gamma[q])) : 0;
 
-              real eta = xb + hb + offset[i];
+              real eta = xb + hb + eta_offset[i];
               real r_i = y_eff[i] - eta;
 
               real z  = fmin(20, fmax(-20, -r_i / smooth_T));
@@ -1225,7 +1225,7 @@ getModel <- function(y, taus, H = NULL, X = NULL, offset = NULL, w = 0,
           for (q in 1:m) {
             real xb = dot_product(to_vector(row(X_design, i)), to_vector(beta[q]));
             real hb = (r > 0) ? dot_product(to_vector(row(H, i)), to_vector(gamma[q])) : 0;
-            eta_row[q] = xb + hb + offset[i];
+            eta_row[q] = xb + hb + eta_offset[i];
           }
 
           // Non-crossing penalty: penalize negative derivatives
@@ -1462,7 +1462,7 @@ getModel <- function(y, taus, H = NULL, X = NULL, offset = NULL, w = 0,
   stan_data <- list(
     n = n, px = px, m = m, r = r,
     X = X, H = H,
-    y = y, offset = offset, tau_q = taus,
+    y = y, eta_offset = offset, tau_q = taus,
     beta0_loc = beta0_loc, beta0_scale = beta0_scale,
     base_scale = base_scale, c_sigma = c_sigma, beta_sd = beta_sd,
     lambda_nc = lambda_nc,

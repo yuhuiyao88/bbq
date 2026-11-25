@@ -35,24 +35,45 @@ The package compiles its Stan model on first use in each R session (a few minute
 | Figures 6-8 | `plotQuantileProcess()`, `plotQSSProcess()`, `plotGammaHeatmap()` |
 
 ```r
-library(bbq)
+library(bbq)   # the Stan model compiles on the first fit of each session
 
-# synthetic AR(1) series (phi = 0.5), one year of daily data, with a location
-# shift of 1 standard deviation from day 292 (0.8 T), as in Section 4
+# Synthetic AR(1) series as in the reference setting P05 of Section 4.1:
+# phi = 0.5, T = 365, l = 30, w = 30, and a location shift of 1 in the
+# innovations from observation 292 (0.8 T) onward.
 set.seed(2026)
 n <- 365; e <- rnorm(n); e[292:n] <- e[292:n] + 1
 y <- as.numeric(stats::filter(e, 0.5, method = "recursive"))
 
-# end to end: cross-validation over the Section 4 grid, refit, detection
+# End to end (Steps 1-6): cross-validation over the Section 4 grid, refit of
+# the selected configuration on all T observations, and detection.
 out <- bbq(y, l = 30, w = 30, prior = "spike_slab_lasso")
+out$settings[c("lambda_iq", "shrinkage")]   # selected by Eq. (18): lambda_iq = 0, spike sd = 0.1
+det <- out$detection
+det$tests$qss$ui$raw                        # OOC blocks on the QSS basis (Eq. 21): 9 10
+det$tests$qss$ui$cells$raw[, det$tests$qss$ui$raw, drop = FALSE]   # location / scale cells
+det$detected_blocks$signal_obs[det$tests$qss$ui$raw]               # localized change-points (Eq. 25): 277 302
+det$tests$qss$overall_ui_p                  # overall UI p-value (Eq. 22)
 
-# or step by step at a chosen configuration
-fit <- bbqFit(y, l = 30, w = 30, prior = "spike_slab_lasso", lambda_iq = 100, shrinkage = 0.1)
-det <- bbqDetect(fit, l = 30, w = 30)
-det$tests$qss$ui$raw                         # blocks flagged on the QSS basis
-det$tests$qss$ui$cells$raw                   # location / scale cells within them
-det$detected_blocks$signal_obs[det$tests$qss$ui$raw]   # localized change-points
+# Figures 6-8 for the QSS basis
+plotQuantileProcess(out$fit, detection = det, basis = "qss")
+plotQSSProcess(out$fit, detection = det)
+plotGammaHeatmap(out$fit, detection = det, basis = "qss")
 ```
+
+The same steps one at a time; `bbqTune` sorts the grid by validation loss, so
+row 1 is the selected configuration, and the results are identical to `bbq()`:
+
+```r
+cv  <- bbqTune(y, l = 30, w = 30, prior = "spike_slab_lasso")
+fit <- bbqFit(y, l = 30, w = 30, prior = "spike_slab_lasso",
+              lambda_iq = cv$lambda_iq[1], shrinkage = cv[[attr(cv, "shrinkage_arg")]][1])
+det <- bbqDetect(fit, l = 30, w = 30)
+```
+
+Blocks 9 and 10 cover observations 271-300 and 301-330, so the shift at
+observation 292 is found in the block that contains it and in the next one.
+The end-to-end run takes about five minutes on a laptop, most of it the 20
+cross-validation configurations.
 
 The shrinkage hyperparameter is the spike standard deviation for
 `"spike_slab"` and `"spike_slab_lasso"`, and the gamma hyperprior rate

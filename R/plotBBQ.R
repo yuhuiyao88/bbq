@@ -449,9 +449,10 @@ plotLmomProcess <- function(fit, eta = NULL, H = NULL, X = NULL, time = NULL,
 #' panel (the quantile shift coefficients as a quantile-by-block map) and/or a \strong{QSS}
 #' panel (the four QSS shift coefficients LS, ScS, SkS, KS by block). If only one
 #' family was computed, only that panel is drawn; if both, both are stacked (via
-#' \pkg{patchwork} when available). Borders follow the statistic recorded in
-#' \code{detection}: per-cell where \eqn{|z|} exceeds the calibrated cell-max
-#' threshold, or whole significant columns under the Hotelling \eqn{T^2}.
+#' \pkg{patchwork} when available). Borders follow the statistic and the decision
+#' rule (\code{adjust}) recorded in \code{detection}: OOC blocks are bordered in
+#' \code{block_color}, and within them the cells flagged by
+#' \code{detectChangepoints_gamma()} are bordered in \code{cell_color}.
 #'
 #' @param fit A MAP fit from \code{getModel()}.
 #' @param detection Optional \code{detectChangepoints_gamma()} result. Its
@@ -473,9 +474,9 @@ plotLmomProcess <- function(fit, eta = NULL, H = NULL, X = NULL, time = NULL,
 #' @param mark_cells Logical; when \code{TRUE} (default) the cells responsible for a
 #'   OOC block are given a second, darker border. A block that the block-level
 #'   rule flags is bordered in \code{block_color}; inside it, each cell whose
-#'   cell-level posterior probability
-#'   \eqn{p_{q,j} = 1 - P(\chi^2_1 \le \tilde z^2_{q,j})} falls below \code{alpha}
-#'   is bordered in \code{cell_color}. This is the within-block localization step of
+#'   \eqn{|\tilde z_{q,j}|} exceeds the block charting constant \eqn{c_j^{UI}} of
+#'   Eq. (21) (under the default \code{adjust = "raw"}) is bordered in
+#'   \code{cell_color}. This is the within-block localization step of
 #'   Section 3.2: it runs only inside blocks that have already signaled, so it
 #'   localizes a detected shift rather than adding a new family of tests, and the
 #'   false alarm probability remains that of the block-level rule.

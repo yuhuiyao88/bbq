@@ -672,9 +672,9 @@ getEta <- function(fit_result, H = NULL, X = NULL, offset = NULL, n_samples = 10
 #'   is a deprecated alias for \code{"ui"}. The legacy \code{calibrated}/\code{block_test}/
 #'   \code{qss} flags are derived from \code{basis} and \code{statistic} unless passed
 #'   explicitly.
-#' @param adjust The across-block decision rule of record: \code{"calib"}
-#'   (default; the calibrated single-step charting constants of Eqs. (22)/(24)),
-#'   \code{"raw"} (the block-level constants of Eqs. (21)/(23)), or
+#' @param adjust The across-block decision rule of record: \code{"raw"}
+#'   (default; the block-level constants of Eqs. (21)/(23)), \code{"calib"}
+#'   (the calibrated single-step charting constants of Eqs. (22)/(24)), or
 #'   \code{"bonf"}/\code{"holm"}/\code{"bh"} (the multiplicity-adjusted
 #'   constants of Eq. (25)). The full family is always computed and returned in
 #'   \code{tests}; \code{adjust} selects which member the plots render — plots

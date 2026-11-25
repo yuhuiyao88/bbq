@@ -37,21 +37,25 @@ The package compiles its Stan model on first use in each R session (a few minute
 ```r
 library(bbq)   # the Stan model compiles on the first fit of each session
 
-# Synthetic AR(1) series as in the reference setting P05 of Section 4.1:
-# phi = 0.5, T = 365, l = 30, w = 30, and a location shift of 1 in the
-# innovations from observation 292 (0.8 T) onward.
+# Synthetic AR(1) series generated as in the reference setting P05 of
+# Section 4.1: phi = 0.5, T = 365, l = 30, w = 30, stationary start, scaled to
+# unit marginal variance, and a location shift of 1.0002 in the innovations
+# (total-variation distance 0.383) from observation 292 = 0.8 T onward.
 set.seed(2026)
-n <- 365; e <- rnorm(n); e[292:n] <- e[292:n] + 1
-y <- as.numeric(stats::filter(e, 0.5, method = "recursive"))
+n <- 365; phi <- 0.5; ar_sd <- 1 / sqrt(1 - phi^2)
+s <- rnorm(n); s[292:n] <- s[292:n] + 1.0002
+y <- numeric(n); y[1] <- rnorm(1, 0, ar_sd)
+for (t in 2:n) y[t] <- phi * y[t - 1] + s[t]
+y <- y / ar_sd
 
 # End to end (Steps 1-6): cross-validation over the Section 4 grid, refit of
 # the selected configuration on all T observations, and detection.
 out <- bbq(y, l = 30, w = 30, prior = "spike_slab_lasso")
-out$settings[c("lambda_iq", "shrinkage")]   # selected by Eq. (18): lambda_iq = 0, spike sd = 0.1
+out$settings[c("lambda_iq", "shrinkage")]   # selected by Eq. (18): lambda_iq = 1000, spike sd = 0.1
 det <- out$detection
 det$tests$qss$ui$raw                        # OOC blocks on the QSS basis (Eq. 21): 9 10
-det$tests$qss$ui$cells$raw[, det$tests$qss$ui$raw, drop = FALSE]   # location / scale cells
-det$detected_blocks$signal_obs[det$tests$qss$ui$raw]               # localized change-points (Eq. 25): 277 302
+det$tests$qss$ui$cells$raw[, det$tests$qss$ui$raw, drop = FALSE]   # location cells only
+det$detected_blocks$signal_obs[det$tests$qss$ui$raw]               # localized change-points (Eq. 25): 273 303
 det$tests$qss$overall_ui_p                  # overall UI p-value (Eq. 22)
 
 # Figures 6-8 for the QSS basis

@@ -1,4 +1,4 @@
-# BBQ: Bayesian bi-aspect quantile (BBQ) change-point detection for retrospective (Phase I) monitoring
+# BBQ: Bayesian bi-aspect quantile change-point detection for retrospective (Phase I) monitoring
 
 Bayesian bi-aspect quantile (BBQ) change-point detection for retrospective
 (Phase I) monitoring of individual autocorrelated observations, as described in
